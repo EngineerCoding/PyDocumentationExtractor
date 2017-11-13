@@ -3,7 +3,7 @@ import importlib.util
 import inspect
 
 import os
-
+import sys
 
 ILLEGAL_ATTRIBUTES = ('__builtins__', '__cached__', '__file__', '__loader__',
                       '__name__', '__package__', '__spec__',
@@ -35,6 +35,8 @@ def analyze_attributes(file_handle, module, class_mode=False):
     for attr_name in dir(module):
         if attr_name not in ILLEGAL_ATTRIBUTES:
             attr = getattr(module, attr_name)
+            if attr.__module__ != module.__name__:
+                continue
             if inspect.isclass(attr):
                 doc = '' if attr.__doc__ is None else attr.__doc__
                 file_handle.write('## Class ' + attr_name + '\n' + doc + '\n')
@@ -51,7 +53,7 @@ def analyze_attributes(file_handle, module, class_mode=False):
 def analyze_module(arguments, package, module):
     path = os.path.join(arguments.output_dir, package + '.md')
     with open(path, 'w') as out:
-        out.write('#' + package + '\n' + '\n')
+        out.write('# ' + package + '\n' + '\n')
         if module.__doc__:
             out.write(module.__doc__)
         analyze_attributes(out, module)
@@ -89,6 +91,7 @@ def main():
     arguments.file = local_to_abs_path(arguments.file)
     if arguments.input_dir is not None:
         arguments.input_dir = local_to_abs_path(arguments.input_dir)
+        sys.path.append(arguments.input_dir)
         extract_from_directory(arguments, dir=arguments.input_dir)
     else:
         arguments.file = local_to_abs_path(arguments.file)
