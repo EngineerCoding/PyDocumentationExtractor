@@ -60,6 +60,8 @@ def analyze_module(arguments, package, module):
 def extract_from_file(arguments, file=None, prefix=''):
     if file is None:
         file = arguments.file
+    if not os.path.isfile(file):
+        raise FileNotFoundError(file)
     name, ext = os.path.splitext(os.path.basename(file))
     python_package = prefix + name
     module_spec = importlib.util.spec_from_file_location(
